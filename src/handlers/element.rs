@@ -74,7 +74,7 @@ pub enum UIElementSizing {
 }
 
 impl UIElementSizing {
-    fn resolve(self, available: f32) -> f32 {
+    pub fn resolve(self, available: f32) -> f32 {
         match self {
             Self::Fixed(val) => val,
             Self::Percentage(percent) => available * percent,
@@ -85,8 +85,8 @@ impl UIElementSizing {
 }
 
 pub struct UIElementSizingAxis {
-    width: UIElementSizing,
-    height: UIElementSizing,
+    pub width: UIElementSizing,
+    pub height: UIElementSizing,
 }
 
 impl UIElementSizingAxis {

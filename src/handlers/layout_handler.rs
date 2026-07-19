@@ -2,15 +2,27 @@
 * Copyright (c) AWildDevAppears
 */
 use raylib::{ffi::Rectangle, prelude::*};
+use std::ffi::CString;
 
 pub use crate::handlers::element::{
     UIElement, UIElementDirection, UIElementSizing, UIElementSizingAxis,
 };
 
+fn measure_text_width(text: &str, font_size: i32) -> f32 {
+    let c_text = CString::new(text).unwrap_or_else(|_| CString::new("").unwrap());
+    unsafe {
+        raylib::ffi::MeasureText(c_text.as_ptr(), font_size) as f32
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct ResolvedElement {
     pub rect: Rectangle,
     pub background: Option<Color>,
+    pub text: Option<String>,
+    pub text_color: Option<Color>,
+    pub font_size: f32,
+    pub text_pos: Vector2,
 }
 
 pub struct LayoutHandler {
@@ -49,6 +61,10 @@ impl LayoutHandler {
             if let Some(color) = el.background {
                 d.draw_rectangle_rec(el.rect, color);
             }
+            if let Some(ref txt) = el.text {
+                let color = el.text_color.unwrap_or(Color::WHITE);
+                d.draw_text(txt, el.text_pos.x as i32, el.text_pos.y as i32, el.font_size as i32, color);
+            }
         }
     }
 
@@ -71,14 +87,24 @@ impl LayoutHandler {
             height_sizing => Some(height_sizing.resolve(available_height)),
         };
 
-        // If either width or height is Fit, we must recursively measure children to determine size.
+        // If either width or height is Fit, we must recursively measure children or fit to text.
         if width.is_none() || height.is_none() {
             let padding_vert = element.padding.top + element.padding.bottom;
             let padding_hor = element.padding.start + element.padding.end;
             let inner_w = (available_width - padding_hor).max(0.0);
             let inner_h = (available_height - padding_vert).max(0.0);
 
-            if element.children.is_empty() {
+            if let Some(ref text) = element.text {
+                let text_w = measure_text_width(text, element.style.font_size as i32);
+                let text_h = element.style.font_size;
+
+                if width.is_none() {
+                    width = Some(text_w + padding_hor);
+                }
+                if height.is_none() {
+                    height = Some(text_h + padding_vert);
+                }
+            } else if element.children.is_empty() {
                 if width.is_none() {
                     width = Some(padding_hor);
                 }
@@ -142,6 +168,16 @@ impl LayoutHandler {
     }
 
     fn calculate_layout(&mut self, element: &UIElement, x: f32, y: f32, width: f32, height: f32) {
+        let mut text_pos = Vector2::new(x + element.padding.start, y + element.padding.top);
+        if let Some(ref text) = element.text {
+            let text_w = measure_text_width(text, element.style.font_size as i32);
+            let text_h = element.style.font_size;
+            // Center the text inside the element's bounding box
+            let tx = x + element.padding.start + (width - element.padding.start - element.padding.end - text_w).max(0.0) / 2.0;
+            let ty = y + element.padding.top + (height - element.padding.top - element.padding.bottom - text_h).max(0.0) / 2.0;
+            text_pos = Vector2::new(tx, ty);
+        }
+
         let new_index = self.elements.len();
         self.elements.push(ResolvedElement {
             rect: Rectangle {
@@ -151,6 +187,10 @@ impl LayoutHandler {
                 height,
             },
             background: element.style.background,
+            text: element.text.clone(),
+            text_color: element.style.text_color,
+            font_size: element.style.font_size,
+            text_pos,
         });
 
         if element.children.is_empty() {

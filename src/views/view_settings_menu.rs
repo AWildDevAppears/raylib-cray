@@ -1,7 +1,7 @@
 /**
 * Copyright (c) AWildDevAppears
 */
-use raylib::ffi::{Color, RaylibPalette};
+use raylib::ffi::Color;
 
 use crate::handlers::layout_handler::{UIElement, UIElementSizing, UIElementSizingAxis};
 
@@ -22,16 +22,29 @@ pub fn view_settings_menu(screen_width: f32, screen_height: f32) -> UIElement {
                 .child(
                     UIElement::new()
                         .sizing(UIElementSizingAxis::composite(
-                            UIElementSizing::Percentage(1.0),
-                            UIElementSizing::Percentage(1.0),
+                            UIElementSizing::Fit,
+                            UIElementSizing::Fit,
                         ))
-                        .background(Color::PINK),
+                        .text("Hello World!")
+                        .text_color(Color::BLACK)
+                        .font_size(24.0),
                 ),
             UIElement::new()
                 .sizing(UIElementSizingAxis::composite(
                     UIElementSizing::Percentage(0.5),
                     UIElementSizing::Fixed(80.0),
                 ))
-                .background(Color::new(125, 0, 0, 255)),
+                .background(Color::new(125, 0, 0, 255))
+                .padding(12.0)
+                .child(
+                    UIElement::new()
+                        .sizing(UIElementSizingAxis::composite(
+                            UIElementSizing::Fit,
+                            UIElementSizing::Fit,
+                        ))
+                        .text("Cray Engine")
+                        .text_color(Color::WHITE)
+                        .font_size(18.0),
+                ),
         ])
 }

@@ -12,18 +12,39 @@ pub struct UIElement {
     pub direction: UIElementDirection,
     pub style: UIElementStyle,
     pub children: Vec<UIElement>,
+    pub text: Option<String>,
 }
 
 impl UIElement {
     pub fn new() -> Self {
         Self {
-            style: UIElementStyle { background: None },
+            style: UIElementStyle {
+                background: None,
+                text_color: Some(Color::WHITE),
+                font_size: 20.0,
+            },
             children: Vec::new(),
             sizing: UIElementSizingAxis::fixed(0.0, 0.0),
             padding: UIElementPadding::default(),
             gap: 0.0,
             direction: UIElementDirection::Horizontal,
+            text: None,
         }
+    }
+
+    pub fn text(mut self, text: impl Into<String>) -> Self {
+        self.text = Some(text.into());
+        self
+    }
+
+    pub fn text_color(mut self, color: Color) -> Self {
+        self.style.text_color = Some(color);
+        self
+    }
+
+    pub fn font_size(mut self, size: f32) -> Self {
+        self.style.font_size = size;
+        self
     }
 
     pub fn child(mut self, child: UIElement) -> Self {
@@ -112,6 +133,8 @@ impl UIElementSizingAxis {
 // Style
 pub struct UIElementStyle {
     pub background: Option<Color>,
+    pub text_color: Option<Color>,
+    pub font_size: f32,
 }
 
 pub enum UIElementDirection {

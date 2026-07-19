@@ -1,0 +1,63 @@
+/**
+* Copyright (c) AWildDevAppears
+*/
+
+syntax = "proto3";
+package arcana.ui.v1;
+
+message UIElement {
+
+  optional string id = 1;
+  optional string text = 2;
+  optional UIElementDirection direction = 3;
+  //
+  optional float gap  = 10;
+  optional UIElementPadding padding = 11;
+  optional UIElementStyle style = 12;
+  //
+  repeated UIElement children = 100;
+}
+
+message UIElementPadding {
+  optional float top = 1;
+  optional float bottom = 2;
+  optional float start = 3;
+  optional float end = 4;
+}
+
+message UIElementStyle {
+  Color background  = 1;
+  Color text_color = 2;
+  Color font_size = 3;
+}
+
+message UIElementSizingAxis {
+  UIElementSizing width = 1;
+  UIElementSizing height = 2;
+}
+
+message UIElementSizing {
+  oneof sizing {
+     UIElementSizingWithValue fixed = 10;
+     UIElementSizingWithValue percentage = 11;
+     bool fit = 12;
+     bool grow = 13;
+  }
+}
+
+message UIElementSizingWithValue {
+  float value = 1;
+}
+
+message Color {
+  int32 r = 1;
+  int32 g = 2;
+  int32 b = 3;
+  optional int32 o = 4;
+}
+
+enum UIElementDirection {
+  UI_ELEMENT_DIRECTION_UNSPECIFIED = 0;
+  UI_ELEMENT_DIRECTION_HORIZONTAL = 1;
+  UI_ELEMENT_DIRECTION_VERTICAL = 2;
+}

@@ -4,17 +4,19 @@
 use raylib::{ffi::Rectangle, prelude::*};
 use std::ffi::CString;
 
-pub use crate::handlers::element::{
-    UIElement, UIElementDirection, UIElementSizing, UIElementSizingAxis,
-};
+mod layout_element;
+mod layout_padding;
+
+pub use layout_element::{UIElement, UIElementDirection, UIElementSizing, UIElementSizingAxis};
 
 fn measure_text_width(text: &str, font_size: i32) -> f32 {
     let c_text = CString::new(text).unwrap_or_else(|_| CString::new("").unwrap());
-    unsafe {
-        raylib::ffi::MeasureText(c_text.as_ptr(), font_size) as f32
-    }
+    unsafe { raylib::ffi::MeasureText(c_text.as_ptr(), font_size) as f32 }
 }
 
+/// Represents a UI element whose layout coordinates and sizes have been resolved.
+/// Storing these allows separating layout calculation from immediate rendering and
+/// enables collision detection (hit-testing) and post-process styling.
 #[derive(Debug, Clone)]
 pub struct ResolvedElement {
     pub rect: Rectangle,
@@ -25,6 +27,20 @@ pub struct ResolvedElement {
     pub text_pos: Vector2,
 }
 
+// TODO: To make this a complete Clay-like layout engine, several core features are missing here:
+//
+// 1. **Input/Event State Tracker**:
+//    We need fields to track pointer focus, mouse coordinate history, active/hovered element IDs,
+//    and keyboard focus. E.g., `hovered_element_id: Option<ElementId>`, `active_element_id: Option<ElementId>`.
+//
+// 2. **Persistent ID Stack**:
+//    To map interactive states (like hover, active, or scroll offsets) across frames, every laid-out
+//    element should have a unique identifier. We need a stack of hashes or strings (e.g., a path-based ID
+//    like `parent_id / child_index / user_provided_key`) to lookup persistent states.
+//
+// 3. **Scroll & Overflow Cache**:
+//    For scroll containers, we need to cache scroll offsets between frames. A map of `ElementId -> ScrollState`
+//    is required to offset child elements during coordinate assignment.
 pub struct LayoutHandler {
     pub elements: Vec<ResolvedElement>,
     parent_stack: Vec<usize>,
@@ -38,6 +54,15 @@ impl LayoutHandler {
         }
     }
 
+    // The layout engine operates as a multi-pass system:
+    //
+    // - Pass 1: Sizing/Measurement (Bottom-Up) - Resolved via `measure_element`
+    // - Pass 2: Positioning & Arrangement (Top-Down) - Resolved via `calculate_layout` (distributing `Grow` sibling space)
+    // - Pass 3: Deferred Drawing - Resolved in `render` loop (drawing backgrounds and text)
+    //
+    // TODO: Remaining steps to add:
+    // - Collision Detection / Input Processing (checking if mouse hovered/clicked resolved element rects)
+    // - Advanced Alignment & Justification (applying axis alignment rules)
     pub fn render(
         &mut self,
         element: &UIElement,
@@ -63,15 +88,42 @@ impl LayoutHandler {
             }
             if let Some(ref txt) = el.text {
                 let color = el.text_color.unwrap_or(Color::WHITE);
-                d.draw_text(txt, el.text_pos.x as i32, el.text_pos.y as i32, el.font_size as i32, color);
+                d.draw_text(
+                    txt,
+                    el.text_pos.x as i32,
+                    el.text_pos.y as i32,
+                    el.font_size as i32,
+                    color,
+                );
             }
         }
     }
 
+    // TODO: In a multi-pass layout engine, `close_element` is the hook for:
+    // 1. Finalizing and storing the parent's layout bounds after children are measured (Pass 1).
+    // 2. Popping the current element ID from the ID stack.
+    // 3. Popping any active scissor rects or clipping groups.
     fn close_element(&mut self) {
         self.parent_stack.pop();
     }
 
+    // TODO: Refactor layout arrangement to add the remaining layout features:
+    //
+    // 1. **Scroll Containers & Clipping**:
+    //    - Check for scroll/clipping configs, apply Raylib scissor mode, and offset children coordinates by cached scroll offsets.
+    //
+    // 2. **Alignment & Justification**:
+    //    - Add support for centering or aligning children along the cross/main axis within the allocated bounds.
+    //
+    // 3. **Borders, Shadows, and Corner Rounding**:
+    //    - Render rounded backgrounds and borders using Raylib's `draw_rectangle_rounded` functions.
+    //
+    // 4. **Word-wrapping for Text Nodes**:
+    //    - Support wrapping text when constrained by parent boundaries.
+    //
+    // 5. **Interaction & State Callbacks**:
+    //    - Track hover / focus / active states based on whether the mouse is inside the resolved coordinates.
+    //    - Invoke user-defined event hooks (e.g., `on_click`, `on_hover`) during the input phase.
     fn measure_element(
         element: &UIElement,
         available_width: f32,
@@ -173,8 +225,12 @@ impl LayoutHandler {
             let text_w = measure_text_width(text, element.style.font_size as i32);
             let text_h = element.style.font_size;
             // Center the text inside the element's bounding box
-            let tx = x + element.padding.start + (width - element.padding.start - element.padding.end - text_w).max(0.0) / 2.0;
-            let ty = y + element.padding.top + (height - element.padding.top - element.padding.bottom - text_h).max(0.0) / 2.0;
+            let tx = x
+                + element.padding.start
+                + (width - element.padding.start - element.padding.end - text_w).max(0.0) / 2.0;
+            let ty = y
+                + element.padding.top
+                + (height - element.padding.top - element.padding.bottom - text_h).max(0.0) / 2.0;
             text_pos = Vector2::new(tx, ty);
         }
 

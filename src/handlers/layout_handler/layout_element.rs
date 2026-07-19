@@ -1,9 +1,9 @@
-use raylib::ffi::Color;
-
 /**
 * Copyright (c) AWildDevAppears
 */
-use crate::handlers::padding::{IntoPadding, UIElementPadding};
+use raylib::ffi::Color;
+
+use crate::handlers::layout_handler::layout_padding::{IntoPadding, UIElementPadding};
 
 pub struct UIElement {
     pub sizing: UIElementSizingAxis,

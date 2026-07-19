@@ -1,4 +1,7 @@
-use crate::{handlers::layout_handler::UIElement, views::view_settings_menu::view_settings_menu};
+use crate::{
+    handlers::layout_handler::{LayoutHandler, UIElement},
+    views::view_settings_menu::view_settings_menu,
+};
 
 /**
 * Copyright (c) AWildDevAppears
@@ -9,6 +12,7 @@ pub struct GameState {
     pub screen_height: i32,
     pub game_name: String,
     pub current_view: UIElement,
+    pub layout_handler: LayoutHandler,
 }
 
 impl GameState {
@@ -18,6 +22,7 @@ impl GameState {
             screen_height: 640,
             game_name: "Boilerplate".to_string(),
             current_view: view_settings_menu(640.0, 640.0),
+            layout_handler: LayoutHandler::new(),
         }
     }
 }

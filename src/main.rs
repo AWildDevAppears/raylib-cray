@@ -4,6 +4,7 @@
 mod controllers;
 mod gamestate;
 mod handlers;
+mod managers;
 mod runtime;
 mod views;
 
@@ -18,7 +19,7 @@ fn main() {
     runtime::preload(&mut state);
 
     while !game.window_should_close() {
-        runtime::update(&mut state, &game);
+        runtime::update(&mut state, &mut game, &thread);
 
         runtime::draw(&mut state, &mut game, &thread);
     }

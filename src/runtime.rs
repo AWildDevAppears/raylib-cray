@@ -11,7 +11,9 @@ pub fn setup() -> GameState {
 
 pub fn preload(_state: &mut GameState) {}
 
-pub fn update(_state: &mut GameState, _game: &RaylibHandle) {}
+pub fn update(state: &mut GameState, game: &mut RaylibHandle, thread: &RaylibThread) {
+    state.font_manager.preload(game, thread, &[]);
+}
 
 pub fn draw(state: &mut GameState, game: &mut RaylibHandle, thread: &RaylibThread) {
     let mut d = game.begin_drawing(thread);

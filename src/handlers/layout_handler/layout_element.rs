@@ -3,6 +3,8 @@
 */
 use raylib::ffi::Color;
 
+use uuid::Uuid;
+
 use crate::handlers::layout_handler::layout_padding::{IntoPadding, UIElementPadding};
 
 pub struct UIElement {
@@ -13,6 +15,7 @@ pub struct UIElement {
     pub style: UIElementStyle,
     pub children: Vec<UIElement>,
     pub text: Option<String>,
+    pub id: String,
 }
 
 impl UIElement {
@@ -29,6 +32,7 @@ impl UIElement {
             gap: 0.0,
             direction: UIElementDirection::Horizontal,
             text: None,
+            id: Uuid::new_v4().to_string(),
         }
     }
 
@@ -77,14 +81,11 @@ impl UIElement {
         self
     }
 
-    pub fn compute_size(&self, available_x: f32, available_y: f32) -> (f32, f32) {
-        let height: f32 = self.sizing.height.resolve(available_y);
-        let width: f32 = self.sizing.width.resolve(available_x);
-
-        (width, height)
+    pub fn id(mut self, id: String) -> Self {
+        self.id = id;
+        self
     }
 }
-
 // Sizing
 #[derive(Clone, Copy)]
 pub enum UIElementSizing {

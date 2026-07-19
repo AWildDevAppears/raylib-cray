@@ -36,6 +36,7 @@ pub fn view_settings_menu(screen_width: f32, screen_height: f32) -> UIElement {
                 ))
                 .background(Color::new(125, 0, 0, 255))
                 .padding(12.0)
+                .radius(0.5)
                 .child(
                     UIElement::new()
                         .sizing(UIElementSizingAxis::composite(

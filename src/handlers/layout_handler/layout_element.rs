@@ -25,6 +25,7 @@ impl UIElement {
                 background: None,
                 text_color: Some(Color::WHITE),
                 font_size: 20.0,
+                radius: None,
             },
             children: Vec::new(),
             sizing: UIElementSizingAxis::fixed(0.0, 0.0),
@@ -85,6 +86,11 @@ impl UIElement {
         self.id = id;
         self
     }
+
+    pub fn radius(mut self, radius: f32) -> Self {
+        self.style.radius = Some(radius);
+        self
+    }
 }
 // Sizing
 #[derive(Clone, Copy)]
@@ -136,6 +142,7 @@ pub struct UIElementStyle {
     pub background: Option<Color>,
     pub text_color: Option<Color>,
     pub font_size: f32,
+    pub radius: Option<f32>,
 }
 
 pub enum UIElementDirection {

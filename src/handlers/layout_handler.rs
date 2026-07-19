@@ -25,6 +25,7 @@ pub struct ResolvedElement {
     pub text_color: Option<Color>,
     pub font_size: f32,
     pub text_pos: Vector2,
+    pub radius: Option<f32>,
 }
 
 // TODO: To make this a complete Clay-like layout engine, several core features are missing here:
@@ -75,16 +76,16 @@ impl LayoutHandler {
         self.elements.clear();
         self.parent_stack.clear();
 
-        // Pass 1: Resolve root dimensions
         let (w, h) = Self::measure_element(element, max_width, max_height);
 
-        // Pass 2: Calculate layouts recursively (Pure CPU calculation)
         self.calculate_layout(element, x, y, w, h);
 
-        // Pass 4: Deferred Drawing Pass
         for el in &self.elements {
             if let Some(color) = el.background {
-                d.draw_rectangle_rec(el.rect, color);
+                match el.radius {
+                    Some(radius) => d.draw_rectangle_rounded(el.rect, radius, 16, color),
+                    None => d.draw_rectangle_rec(el.rect, color),
+                };
             }
             if let Some(ref txt) = el.text {
                 let color = el.text_color.unwrap_or(Color::WHITE);
@@ -247,6 +248,7 @@ impl LayoutHandler {
             text_color: element.style.text_color,
             font_size: element.style.font_size,
             text_pos,
+            radius: element.style.radius,
         });
 
         if element.children.is_empty() {

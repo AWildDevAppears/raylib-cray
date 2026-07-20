@@ -17,7 +17,6 @@ fn measure_text_width(text: &str, font_size: i32) -> f32 {
 /// Represents a UI element whose layout coordinates and sizes have been resolved.
 /// Storing these allows separating layout calculation from immediate rendering and
 /// enables collision detection (hit-testing) and post-process styling.
-#[derive(Debug, Clone)]
 pub struct ResolvedElement {
     pub rect: Rectangle,
     pub background: Option<Color>,
@@ -26,6 +25,8 @@ pub struct ResolvedElement {
     pub font_size: f32,
     pub text_pos: Vector2,
     pub radius: Option<f32>,
+    pub border_width: Option<f32>,
+    pub border_color: Option<Color>,
 }
 
 // TODO: To make this a complete Clay-like layout engine, several core features are missing here:
@@ -87,6 +88,19 @@ impl LayoutHandler {
                     None => d.draw_rectangle_rec(el.rect, color),
                 };
             }
+
+            if let (Some(width), Some(color)) = (el.border_width, el.border_color) {
+                let rect = Rectangle {
+                    x: el.rect.x,
+                    y: el.rect.y,
+                    width: el.rect.width,
+                    height: el.rect.height,
+                };
+                match el.radius {
+                    Some(radius) => d.draw_rectangle_rounded_lines_ex(rec,  radius, 16,width, color),
+                    None => d.draw_rectangle_lines(rect.x as i32, rect.y as i32, rect.width as i32, rect.height as i32, color),
+            }
+
             if let Some(ref txt) = el.text {
                 let color = el.text_color.unwrap_or(Color::WHITE);
                 d.draw_text(
@@ -97,7 +111,6 @@ impl LayoutHandler {
                     color,
                 );
             }
-        }
     }
 
     // TODO: In a multi-pass layout engine, `close_element` is the hook for:
@@ -116,7 +129,7 @@ impl LayoutHandler {
     // 2. **Alignment & Justification**:
     //    - Add support for centering or aligning children along the cross/main axis within the allocated bounds.
     //
-    // 3. **Borders, Shadows, and Corner Rounding**:
+    // 3. **Shadows**:
     //    - Render rounded backgrounds and borders using Raylib's `draw_rectangle_rounded` functions.
     //
     // 4. **Word-wrapping for Text Nodes**:
@@ -140,12 +153,15 @@ impl LayoutHandler {
             height_sizing => Some(height_sizing.resolve(available_height)),
         };
 
+        let border_w = element.style.border_width.unwrap_or(0.0);
+        let border_h = element.style.border_width.unwrap_or(0.0);
+
         // If either width or height is Fit, we must recursively measure children or fit to text.
         if width.is_none() || height.is_none() {
             let padding_vert = element.padding.top + element.padding.bottom;
             let padding_hor = element.padding.start + element.padding.end;
-            let inner_w = (available_width - padding_hor).max(0.0);
-            let inner_h = (available_height - padding_vert).max(0.0);
+            let inner_w = (available_width - padding_hor - border_w * 2.0).max(0.0);
+            let inner_h = (available_height - padding_vert - border_h * 2.0).max(0.0);
 
             if let Some(ref text) = element.text {
                 let text_w = measure_text_width(text, element.style.font_size as i32);
@@ -249,7 +265,10 @@ impl LayoutHandler {
             font_size: element.style.font_size,
             text_pos,
             radius: element.style.radius,
+            border_width: element.style.border_width,
+            border_color: element.style.border_color,
         });
+
 
         if element.children.is_empty() {
             return;

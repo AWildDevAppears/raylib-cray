@@ -1,7 +1,7 @@
 /**
 * Copyright (c) AWildDevAppears
 */
-use raylib::ffi::Color;
+use raylib::ffi::{Color, Font};
 
 use uuid::Uuid;
 
@@ -26,6 +26,9 @@ impl UIElement {
                 text_color: Some(Color::WHITE),
                 font_size: 20.0,
                 radius: None,
+                border_width: None,
+                border_color: None,
+                font: None,
             },
             children: Vec::new(),
             sizing: UIElementSizingAxis::fixed(0.0, 0.0),
@@ -35,6 +38,7 @@ impl UIElement {
             text: None,
             id: Uuid::new_v4().to_string(),
         }
+    }
     }
 
     pub fn text(mut self, text: impl Into<String>) -> Self {
@@ -87,12 +91,19 @@ impl UIElement {
         self
     }
 
-    pub fn radius(mut self, radius: f32) -> Self {
-        self.style.radius = Some(radius);
+    pub fn border(mut self, width: f32, color: Color) -> Self {
+        self.style.border_width = Some(width);
+        self.style.border_color = Some(color);
+        self
+    }
+
+    pub fn font(mut self, font: Font) -> Self {
+        self.style.font;
         self
     }
 }
 // Sizing
+#[repr(u8)]
 #[derive(Clone, Copy)]
 pub enum UIElementSizing {
     Fixed(f32),
@@ -143,8 +154,12 @@ pub struct UIElementStyle {
     pub text_color: Option<Color>,
     pub font_size: f32,
     pub radius: Option<f32>,
+    pub border_width: Option<f32>,
+    pub border_color: Option<Color>,
+    pub font: Option<Font>,
 }
 
+#[repr(u8)]
 pub enum UIElementDirection {
     Horizontal,
     Vertical,

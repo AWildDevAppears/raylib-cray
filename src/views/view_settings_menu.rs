@@ -3,9 +3,12 @@
 */
 use raylib::ffi::Color;
 
-use crate::handlers::layout_handler::{UIElement, UIElementSizing, UIElementSizingAxis};
+use crate::{
+    gamestate::GameState,
+    handlers::layout_handler::{UIElement, UIElementSizing, UIElementSizingAxis},
+};
 
-pub fn view_settings_menu(screen_width: f32, screen_height: f32) -> UIElement {
+pub fn view_settings_menu(screen_width: f32, screen_height: f32, state: GameState) -> UIElement {
     UIElement::new()
         .sizing(UIElementSizingAxis::fixed(screen_width, screen_height))
         .padding(24.0)

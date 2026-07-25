@@ -1,10 +1,7 @@
 /**
 * Copyright (c) AWildDevAppears
 */
-use crate::{
-    handlers::layout_handler::{LayoutHandler, UIElement},
-    managers::font_manager::FontManager,
-};
+use crate::handlers::layout_handler::{LayoutHandler, UIElement};
 
 pub struct GameState {
     pub screen_width: i32,
@@ -13,8 +10,6 @@ pub struct GameState {
     pub current_view: UIElement,
     // Handlers
     pub layout_handler: LayoutHandler,
-    // Managers
-    pub font_manager: FontManager,
 }
 
 impl GameState {
@@ -25,7 +20,6 @@ impl GameState {
             game_name: "Boilerplate".to_string(),
             current_view: UIElement::new(),
             layout_handler: LayoutHandler::new(),
-            font_manager: FontManager::new(),
         }
     }
 }

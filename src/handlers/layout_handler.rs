@@ -9,6 +9,8 @@ mod layout_padding;
 
 pub use layout_element::{UIElement, UIElementDirection, UIElementSizing, UIElementSizingAxis};
 
+use crate::managers::font_manager::FontManager;
+
 fn measure_text_width(text: &str, font_size: i32) -> f32 {
     let c_text = CString::new(text).unwrap_or_else(|_| CString::new("").unwrap());
     unsafe { raylib::ffi::MeasureText(c_text.as_ptr(), font_size) as f32 }
@@ -23,6 +25,7 @@ pub struct ResolvedElement {
     pub text: Option<String>,
     pub text_color: Option<Color>,
     pub font_size: f32,
+    pub font: Option<String>,
     pub text_pos: Vector2,
     pub radius: Option<f32>,
     pub border_width: Option<f32>,
@@ -73,6 +76,7 @@ impl LayoutHandler {
         y: f32,
         max_width: f32,
         max_height: f32,
+        font_manager: &FontManager,
     ) {
         self.elements.clear();
         self.parent_stack.clear();
@@ -97,20 +101,36 @@ impl LayoutHandler {
                     height: el.rect.height,
                 };
                 match el.radius {
-                    Some(radius) => d.draw_rectangle_rounded_lines_ex(rec,  radius, 16,width, color),
-                    None => d.draw_rectangle_lines(rect.x as i32, rect.y as i32, rect.width as i32, rect.height as i32, color),
+                    Some(radius) => {
+                        d.draw_rectangle_rounded_lines_ex(rect, radius, 16, width, color)
+                    }
+                    None => d.draw_rectangle_lines(
+                        rect.x as i32,
+                        rect.y as i32,
+                        rect.width as i32,
+                        rect.height as i32,
+                        color,
+                    ),
+                }
             }
 
             if let Some(ref txt) = el.text {
                 let color = el.text_color.unwrap_or(Color::WHITE);
-                d.draw_text(
-                    txt,
-                    el.text_pos.x as i32,
-                    el.text_pos.y as i32,
-                    el.font_size as i32,
-                    color,
-                );
+                match &el.font {
+                    Some(font) => {
+                        let resolved = font_manager.get_font(font);
+                        d.draw_text_ex(resolved, txt, el.text_pos, el.font_size, 1.0, color);
+                    }
+                    None => d.draw_text(
+                        txt,
+                        el.text_pos.x as i32,
+                        el.text_pos.y as i32,
+                        el.font_size as i32,
+                        color,
+                    ),
+                }
             }
+        }
     }
 
     // TODO: In a multi-pass layout engine, `close_element` is the hook for:
@@ -263,12 +283,12 @@ impl LayoutHandler {
             text: element.text.clone(),
             text_color: element.style.text_color,
             font_size: element.style.font_size,
+            font: element.style.font.clone(),
             text_pos,
             radius: element.style.radius,
             border_width: element.style.border_width,
             border_color: element.style.border_color,
         });
-
 
         if element.children.is_empty() {
             return;

@@ -2,7 +2,6 @@
 * Copyright (c) AWildDevAppears
 */
 use raylib::ffi::Color;
-use raylib::text::Font;
 
 use uuid::Uuid;
 
@@ -97,7 +96,7 @@ impl UIElement {
         self
     }
 
-    pub fn font(mut self, font: Font) -> Self {
+    pub fn font(mut self, font: String) -> Self {
         self.style.font = Some(font);
         self
     }
@@ -156,7 +155,7 @@ pub struct UIElementStyle {
     pub radius: Option<f32>,
     pub border_width: Option<f32>,
     pub border_color: Option<Color>,
-    pub font: Option<Font>,
+    pub font: Option<String>,
 }
 
 #[repr(u8)]

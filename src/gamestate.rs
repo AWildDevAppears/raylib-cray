@@ -4,7 +4,6 @@
 use crate::{
     handlers::layout_handler::{LayoutHandler, UIElement},
     managers::font_manager::FontManager,
-    views::view_settings_menu::view_settings_menu,
 };
 
 pub struct GameState {
@@ -24,7 +23,7 @@ impl GameState {
             screen_width: 640,
             screen_height: 640,
             game_name: "Boilerplate".to_string(),
-            current_view: view_settings_menu(640.0, 640.0),
+            current_view: UIElement::new(),
             layout_handler: LayoutHandler::new(),
             font_manager: FontManager::new(),
         }

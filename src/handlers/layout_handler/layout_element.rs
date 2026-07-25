@@ -1,7 +1,8 @@
 /**
 * Copyright (c) AWildDevAppears
 */
-use raylib::ffi::{Color, Font};
+use raylib::ffi::Color;
+use raylib::text::Font;
 
 use uuid::Uuid;
 
@@ -38,7 +39,6 @@ impl UIElement {
             text: None,
             id: Uuid::new_v4().to_string(),
         }
-    }
     }
 
     pub fn text(mut self, text: impl Into<String>) -> Self {
@@ -98,7 +98,7 @@ impl UIElement {
     }
 
     pub fn font(mut self, font: Font) -> Self {
-        self.style.font;
+        self.style.font = Some(font);
         self
     }
 }

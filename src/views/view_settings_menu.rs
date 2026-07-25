@@ -8,7 +8,11 @@ use crate::{
     handlers::layout_handler::{UIElement, UIElementSizing, UIElementSizingAxis},
 };
 
-pub fn view_settings_menu(screen_width: f32, screen_height: f32, state: GameState) -> UIElement {
+pub fn view_settings_menu(
+    screen_width: f32,
+    screen_height: f32,
+    state: &mut GameState,
+) -> UIElement {
     UIElement::new()
         .sizing(UIElementSizingAxis::fixed(screen_width, screen_height))
         .padding(24.0)
@@ -39,7 +43,7 @@ pub fn view_settings_menu(screen_width: f32, screen_height: f32, state: GameStat
                 ))
                 .background(Color::new(125, 0, 0, 255))
                 .padding(12.0)
-                .radius(0.5)
+                // .radius(0.5)
                 .child(
                     UIElement::new()
                         .sizing(UIElementSizingAxis::composite(
@@ -48,6 +52,7 @@ pub fn view_settings_menu(screen_width: f32, screen_height: f32, state: GameStat
                         ))
                         .text("Cray Engine")
                         .text_color(Color::WHITE)
+                        .font(state.font_manager.get_font("Foo"))
                         .font_size(18.0),
                 ),
         ])

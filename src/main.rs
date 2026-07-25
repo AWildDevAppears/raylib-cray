@@ -16,7 +16,7 @@ fn main() {
         .title(state.game_name.as_str())
         .build();
 
-    runtime::preload(&mut state);
+    runtime::preload(&mut state, &mut game, &thread);
 
     while !game.window_should_close() {
         runtime::update(&mut state, &mut game, &thread);

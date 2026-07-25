@@ -3,7 +3,7 @@
 */
 use std::collections::HashMap;
 
-use raylib::{RaylibHandle, RaylibThread, prelude::Font};
+use raylib::{RaylibHandle, RaylibThread, text::Font};
 
 pub struct FontManager {
     fonts: HashMap<String, Font>,
@@ -20,7 +20,7 @@ impl FontManager {
         &mut self,
         game: &mut RaylibHandle,
         thread: &RaylibThread,
-        fonts: &[&FontReference],
+        fonts: &[FontReference],
     ) {
         for font in fonts {
             let file_data = std::fs::read(&font.path).expect("Failed to read font file.");
@@ -36,15 +36,15 @@ impl FontManager {
         }
     }
 
-    pub fn get_font(&self, name: String) -> &Font {
-        self.fonts.get(&name).expect("Could not get font by name")
+    pub fn get_font(&self, name: &str) -> &Font {
+        self.fonts.get(name).expect("Could not get font by name")
     }
 }
 
 pub struct FontReference {
-    name: String,
-    path: String,
-    format: FontFormat,
+    pub name: String,
+    pub path: String,
+    pub format: FontFormat,
 }
 
 pub enum FontFormat {

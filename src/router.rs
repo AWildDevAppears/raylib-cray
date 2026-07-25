@@ -6,7 +6,7 @@ use raylib::{RaylibHandle, RaylibThread, drawing::RaylibDrawHandle};
 use crate::{gamestate::GameState, views::view_settings_menu::ViewSettingsMenu};
 
 pub trait Route {
-    fn draw(&self, draw: &mut RaylibDrawHandle, state: &mut GameState);
+    fn draw(&mut self, draw: &mut RaylibDrawHandle, state: &mut GameState);
 }
 
 pub struct Router {

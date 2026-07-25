@@ -1,21 +1,18 @@
 /**
 * Copyright (c) AWildDevAppears
 */
-use raylib::{
-    RaylibHandle, RaylibThread,
-    drawing::{RaylibDraw, RaylibDrawHandle},
-    ffi::Color,
-};
+use raylib::{RaylibHandle, RaylibThread, drawing::RaylibDrawHandle, ffi::Color};
 
 use crate::{
     gamestate::GameState,
-    handlers::layout_handler::{UIElement, UIElementSizing, UIElementSizingAxis},
+    handlers::layout_handler::{LayoutHandler, UIElement, UIElementSizing, UIElementSizingAxis},
     managers::font_manager::{FontFormat, FontManager, FontReference},
     router::Route,
 };
 
 pub struct ViewSettingsMenu {
     font_manager: FontManager,
+    layout_handler: LayoutHandler,
 }
 
 impl ViewSettingsMenu {
@@ -30,6 +27,7 @@ impl ViewSettingsMenu {
                     format: FontFormat::TTF,
                 }],
             ),
+            layout_handler: LayoutHandler::new(),
         }
     }
 
@@ -84,8 +82,8 @@ impl ViewSettingsMenu {
 }
 
 impl Route for ViewSettingsMenu {
-    fn draw(&self, draw: &mut RaylibDrawHandle, state: &mut GameState) {
-        state.layout_handler.render(
+    fn draw(&mut self, draw: &mut RaylibDrawHandle, state: &mut GameState) {
+        self.layout_handler.render(
             &self.render(state),
             draw,
             0.0,

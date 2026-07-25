@@ -1,11 +1,10 @@
 use raylib::{drawing::RaylibDraw, ffi::Color};
 
-use crate::{gamestate::GameState, router::Router, views::view_settings_menu::ViewSettingsMenu};
+use crate::{gamestate::GameState, router::Router};
 
 /**
 * Copyright (c) AWildDevAppears
 */
-mod controllers;
 mod gamestate;
 mod handlers;
 mod managers;

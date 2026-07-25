@@ -1,6 +1,6 @@
 use raylib::{drawing::RaylibDraw, ffi::Color};
 
-use crate::{gamestate::GameState, views::view_settings_menu::ViewSettingsMenu};
+use crate::{gamestate::GameState, router::Router, views::view_settings_menu::ViewSettingsMenu};
 
 /**
 * Copyright (c) AWildDevAppears
@@ -9,6 +9,7 @@ mod controllers;
 mod gamestate;
 mod handlers;
 mod managers;
+mod router;
 mod views;
 
 fn main() {
@@ -18,12 +19,15 @@ fn main() {
         .title(state.game_name.as_str())
         .build();
 
-    let scene = ViewSettingsMenu::new(&mut game, &thread);
+    let mut router = Router::new();
+    router.set_route("settings", &mut game, &thread);
 
     while !game.window_should_close() {
         let mut d = game.begin_drawing(&thread);
         d.clear_background(Color::BLACK);
 
-        scene.draw(&mut d, &mut state);
+        if let Some(route) = router.current.as_ref() {
+            route.draw(&mut d, &mut state);
+        }
     }
 }

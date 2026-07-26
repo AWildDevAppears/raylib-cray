@@ -30,6 +30,7 @@ pub struct ResolvedElement {
     pub radius: Option<f32>,
     pub border_width: Option<f32>,
     pub border_color: Option<Color>,
+    pub render: Option<fn(draw: &mut RaylibDrawHandle, bounds: Rectangle)>,
 }
 
 // TODO: To make this a complete Clay-like layout engine, several core features are missing here:
@@ -71,7 +72,7 @@ impl LayoutHandler {
     pub fn render(
         &mut self,
         element: &UIElement,
-        d: &mut impl RaylibDraw,
+        d: &mut RaylibDrawHandle,
         x: f32,
         y: f32,
         max_width: f32,
@@ -86,6 +87,11 @@ impl LayoutHandler {
         self.calculate_layout(element, x, y, w, h);
 
         for el in &self.elements {
+            if let Some(render) = el.render {
+                render(d, el.rect);
+                continue;
+            }
+
             if let Some(color) = el.background {
                 match el.radius {
                     Some(radius) => d.draw_rectangle_rounded(el.rect, radius, 16, color),
@@ -288,6 +294,7 @@ impl LayoutHandler {
             radius: element.style.radius,
             border_width: element.style.border_width,
             border_color: element.style.border_color,
+            render: element.render,
         });
 
         if element.children.is_empty() {

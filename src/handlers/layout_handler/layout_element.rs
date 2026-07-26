@@ -1,11 +1,17 @@
 /**
 * Copyright (c) AWildDevAppears
 */
-use raylib::ffi::Color;
+use raylib::{
+    drawing::RaylibDrawHandle,
+    ffi::{Color, Rectangle},
+};
 
 use uuid::Uuid;
 
-use crate::handlers::layout_handler::layout_padding::{IntoPadding, UIElementPadding};
+use crate::{
+    gamestate::GameState,
+    handlers::layout_handler::layout_padding::{IntoPadding, UIElementPadding},
+};
 
 pub struct UIElement {
     pub sizing: UIElementSizingAxis,
@@ -16,6 +22,7 @@ pub struct UIElement {
     pub children: Vec<UIElement>,
     pub text: Option<String>,
     pub id: String,
+    pub render: Option<fn(draw: &mut RaylibDrawHandle, bounds: Rectangle)>,
 }
 
 impl UIElement {
@@ -37,6 +44,7 @@ impl UIElement {
             direction: UIElementDirection::Horizontal,
             text: None,
             id: Uuid::new_v4().to_string(),
+            render: None,
         }
     }
 
@@ -98,6 +106,11 @@ impl UIElement {
 
     pub fn font(mut self, font: String) -> Self {
         self.style.font = Some(font);
+        self
+    }
+
+    pub fn render(mut self, render: Option<fn(&mut RaylibDrawHandle<'_>, Rectangle)>) -> Self {
+        self.render = render;
         self
     }
 }

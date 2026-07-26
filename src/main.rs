@@ -25,7 +25,7 @@ fn main() {
         let mut d = game.begin_drawing(&thread);
         d.clear_background(Color::BLACK);
 
-        if let Some(route) = router.current.as_ref() {
+        if let Some(ref mut route) = router.current {
             route.draw(&mut d, &mut state);
         }
     }

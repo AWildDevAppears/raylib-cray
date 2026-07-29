@@ -6,12 +6,7 @@ use raylib::{
     ffi::{Color, Rectangle},
 };
 
-use uuid::Uuid;
-
-use crate::{
-    gamestate::GameState,
-    handlers::layout_handler::layout_padding::{IntoPadding, UIElementPadding},
-};
+use crate::handlers::layout_handler::layout_padding::{IntoPadding, UIElementPadding};
 
 pub struct UIElement {
     pub sizing: UIElementSizingAxis,
@@ -21,7 +16,6 @@ pub struct UIElement {
     pub style: UIElementStyle,
     pub children: Vec<UIElement>,
     pub text: Option<String>,
-    pub id: String,
     pub render: Option<fn(draw: &mut RaylibDrawHandle, bounds: Rectangle)>,
 }
 
@@ -43,7 +37,6 @@ impl UIElement {
             gap: 0.0,
             direction: UIElementDirection::Horizontal,
             text: None,
-            id: Uuid::new_v4().to_string(),
             render: None,
         }
     }
@@ -90,11 +83,6 @@ impl UIElement {
 
     pub fn background(mut self, color: Color) -> Self {
         self.style.background = Some(color);
-        self
-    }
-
-    pub fn id(mut self, id: String) -> Self {
-        self.id = id;
         self
     }
 

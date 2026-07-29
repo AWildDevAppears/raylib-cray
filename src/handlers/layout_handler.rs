@@ -16,6 +16,12 @@ fn measure_text_width(text: &str, font_size: i32) -> f32 {
     unsafe { raylib::ffi::MeasureText(c_text.as_ptr(), font_size) as f32 }
 }
 
+pub struct MouseEvent {
+    pub position: Vector2,
+    pub left_pressed: bool,
+    pub right_pressed: bool,
+}
+
 /// Represents a UI element whose layout coordinates and sizes have been resolved.
 /// Storing these allows separating layout calculation from immediate rendering and
 /// enables collision detection (hit-testing) and post-process styling.
@@ -31,6 +37,10 @@ pub struct ResolvedElement {
     pub border_width: Option<f32>,
     pub border_color: Option<Color>,
     pub render: Option<fn(draw: &mut RaylibDrawHandle, bounds: Rectangle)>,
+    pub on_left_click: Option<fn(target: uuid::Uuid)>,
+    pub on_right_click: Option<fn(target: uuid::Uuid)>,
+    pub on_enter: Option<fn(target: uuid::Uuid)>,
+    pub on_leave: Option<fn(target: uuid::Uuid)>,
 }
 
 // TODO: To make this a complete Clay-like layout engine, several core features are missing here:
@@ -50,6 +60,10 @@ pub struct ResolvedElement {
 pub struct LayoutHandler {
     pub elements: Vec<ResolvedElement>,
     parent_stack: Vec<usize>,
+
+    bound_ids: Vec<uuid::Uuid>,
+
+    hovered_element_id: Option<uuid::Uuid>,
 }
 
 impl LayoutHandler {
@@ -57,6 +71,8 @@ impl LayoutHandler {
         Self {
             elements: Vec::with_capacity(1024),
             parent_stack: Vec::with_capacity(32),
+            hovered_element_id: None,
+            bound_ids: Vec::with_capacity(1024),
         }
     }
 
@@ -78,6 +94,7 @@ impl LayoutHandler {
         max_width: f32,
         max_height: f32,
         font_manager: &FontManager,
+        mouse: &MouseEvent,
     ) {
         self.elements.clear();
         self.parent_stack.clear();
@@ -85,6 +102,14 @@ impl LayoutHandler {
         let (w, h) = Self::measure_element(element, max_width, max_height);
 
         self.calculate_layout(element, x, y, w, h);
+
+        if self.bound_ids.is_empty() {
+            for _ in self.elements.iter() {
+                self.bound_ids.push(uuid::Uuid::new_v4());
+            }
+        }
+
+        self.handle_interaction_events(mouse);
 
         for el in &self.elements {
             if let Some(render) = el.render {
@@ -295,6 +320,10 @@ impl LayoutHandler {
             border_width: element.style.border_width,
             border_color: element.style.border_color,
             render: element.render,
+            on_left_click: None,  // TODO:
+            on_right_click: None, // TODO:
+            on_enter: None,       // TODO:
+            on_leave: None,       // TODO:
         });
 
         if element.children.is_empty() {
@@ -391,5 +420,42 @@ impl LayoutHandler {
         }
 
         self.close_element();
+    }
+
+    fn handle_interaction_events(&mut self, mouse: &MouseEvent) {
+        let elements = self.elements.iter().rev();
+
+        let hovered_element = elements.enumerate().find_map(|(pos, element)| {
+            if element.rect.check_collision_point_rec(mouse.position) {
+                Some((pos, element))
+            } else {
+                None
+            }
+        });
+
+        if let Some((pos, elem)) = hovered_element {
+            let id = self.bound_ids[pos];
+
+            let previous_hovered = self.hovered_element_id;
+
+            if Some(id) != previous_hovered {
+                if let Some(cb) = elem.on_enter {
+                    cb(id);
+                }
+            }
+            self.hovered_element_id = Some(id);
+
+            if mouse.left_pressed {
+                if let Some(cb) = elem.on_left_click {
+                    cb(id);
+                }
+            }
+
+            if mouse.right_pressed {
+                if let Some(cb) = elem.on_right_click {
+                    cb(id);
+                }
+            }
+        }
     }
 }

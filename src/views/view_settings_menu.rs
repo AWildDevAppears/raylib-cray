@@ -1,11 +1,17 @@
 /**
 * Copyright (c) AWildDevAppears
 */
-use raylib::{RaylibHandle, RaylibThread, drawing::RaylibDrawHandle, ffi::Color};
+use raylib::{
+    RaylibHandle, RaylibThread,
+    drawing::RaylibDrawHandle,
+    ffi::{Color, MouseButton},
+};
 
 use crate::{
     gamestate::GameState,
-    handlers::layout_handler::{LayoutHandler, UIElement, UIElementSizing, UIElementSizingAxis},
+    handlers::layout_handler::{
+        LayoutHandler, MouseEvent, UIElement, UIElementSizing, UIElementSizingAxis,
+    },
     managers::font_manager::{FontFormat, FontManager, FontReference},
     router::Route,
 };
@@ -82,7 +88,7 @@ impl ViewSettingsMenu {
 }
 
 impl Route for ViewSettingsMenu {
-    fn draw(&mut self, draw: &mut RaylibDrawHandle, state: &mut GameState) {
+    fn draw(&mut self, draw: &mut RaylibDrawHandle, state: &mut GameState, mouse: &MouseEvent) {
         self.layout_handler.render(
             &self.render(state),
             draw,
@@ -91,6 +97,7 @@ impl Route for ViewSettingsMenu {
             state.screen_width as f32,
             state.screen_height as f32,
             &self.font_manager,
+            mouse,
         );
     }
 }

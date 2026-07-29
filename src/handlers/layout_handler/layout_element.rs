@@ -9,6 +9,7 @@ use raylib::{
 use crate::handlers::layout_handler::layout_padding::{IntoPadding, UIElementPadding};
 
 pub struct UIElement {
+    pub id: String,
     pub sizing: UIElementSizingAxis,
     pub padding: UIElementPadding,
     pub gap: f32,
@@ -20,8 +21,9 @@ pub struct UIElement {
 }
 
 impl UIElement {
-    pub fn new() -> Self {
+    pub fn new(id: &str) -> Self {
         Self {
+            id: id.to_string(),
             style: UIElementStyle {
                 background: None,
                 text_color: Some(Color::WHITE),

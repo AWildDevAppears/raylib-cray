@@ -38,7 +38,7 @@ impl ViewSettingsMenu {
     }
 
     fn render(&self, state: &GameState) -> UIElement {
-        UIElement::new()
+        UIElement::new("Wrapper")
             .sizing(UIElementSizingAxis::fixed(
                 state.screen_width as f32,
                 state.screen_height as f32,
@@ -47,7 +47,7 @@ impl ViewSettingsMenu {
             .background(Color::new(40, 44, 52, 255))
             .gap(10.0)
             .children(vec![
-                UIElement::new()
+                UIElement::new("LeftCol")
                     .sizing(UIElementSizingAxis::composite(
                         UIElementSizing::Percentage(0.5),
                         UIElementSizing::Fixed(80.0),
@@ -55,7 +55,7 @@ impl ViewSettingsMenu {
                     .background(Color::new(97, 175, 239, 255))
                     .padding(12.0)
                     .child(
-                        UIElement::new()
+                        UIElement::new("HelloMessage")
                             .sizing(UIElementSizingAxis::composite(
                                 UIElementSizing::Fit,
                                 UIElementSizing::Fit,
@@ -64,7 +64,7 @@ impl ViewSettingsMenu {
                             .text_color(Color::BLACK)
                             .font_size(24.0),
                     ),
-                UIElement::new()
+                UIElement::new("RightCol")
                     .sizing(UIElementSizingAxis::composite(
                         UIElementSizing::Percentage(0.5),
                         UIElementSizing::Fixed(80.0),
@@ -73,7 +73,7 @@ impl ViewSettingsMenu {
                     .padding(12.0)
                     // .radius(0.5)
                     .child(
-                        UIElement::new()
+                        UIElement::new("CrayMessage")
                             .sizing(UIElementSizingAxis::composite(
                                 UIElementSizing::Fit,
                                 UIElementSizing::Fit,

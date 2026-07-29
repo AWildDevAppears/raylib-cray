@@ -26,6 +26,7 @@ pub struct MouseEvent {
 /// Storing these allows separating layout calculation from immediate rendering and
 /// enables collision detection (hit-testing) and post-process styling.
 pub struct ResolvedElement {
+    pub id: String,
     pub rect: Rectangle,
     pub background: Option<Color>,
     pub text: Option<String>,
@@ -37,10 +38,10 @@ pub struct ResolvedElement {
     pub border_width: Option<f32>,
     pub border_color: Option<Color>,
     pub render: Option<fn(draw: &mut RaylibDrawHandle, bounds: Rectangle)>,
-    pub on_left_click: Option<fn(target: uuid::Uuid)>,
-    pub on_right_click: Option<fn(target: uuid::Uuid)>,
-    pub on_enter: Option<fn(target: uuid::Uuid)>,
-    pub on_leave: Option<fn(target: uuid::Uuid)>,
+    pub on_left_click: Option<fn(target: &String)>,
+    pub on_right_click: Option<fn(target: &String)>,
+    pub on_enter: Option<fn(target: &String)>,
+    pub on_leave: Option<fn(target: &String)>,
 }
 
 // TODO: To make this a complete Clay-like layout engine, several core features are missing here:
@@ -61,9 +62,8 @@ pub struct LayoutHandler {
     pub elements: Vec<ResolvedElement>,
     parent_stack: Vec<usize>,
 
-    bound_ids: Vec<uuid::Uuid>,
-
-    hovered_element_id: Option<uuid::Uuid>,
+    hovered_element_id: Option<String>,
+    focus_element_id: Option<String>,
 }
 
 impl LayoutHandler {
@@ -71,9 +71,16 @@ impl LayoutHandler {
         Self {
             elements: Vec::with_capacity(1024),
             parent_stack: Vec::with_capacity(32),
+
             hovered_element_id: None,
-            bound_ids: Vec::with_capacity(1024),
+            focus_element_id: None,
         }
+    }
+
+    pub fn get_element_by_id(&self, id: String) -> Option<&ResolvedElement> {
+        self.elements
+            .iter()
+            .find_map(|el| if el.id == id { Some(el) } else { None })
     }
 
     // The layout engine operates as a multi-pass system:
@@ -101,14 +108,8 @@ impl LayoutHandler {
 
         let (w, h) = Self::measure_element(element, max_width, max_height);
 
+        // TODO: ensure unique
         self.calculate_layout(element, x, y, w, h);
-
-        if self.bound_ids.is_empty() {
-            for _ in self.elements.iter() {
-                self.bound_ids.push(uuid::Uuid::new_v4());
-            }
-        }
-
         self.handle_interaction_events(mouse);
 
         for el in &self.elements {
@@ -304,6 +305,7 @@ impl LayoutHandler {
 
         let new_index = self.elements.len();
         self.elements.push(ResolvedElement {
+            id: element.id.clone(),
             rect: Rectangle {
                 x,
                 y,
@@ -423,39 +425,55 @@ impl LayoutHandler {
     }
 
     fn handle_interaction_events(&mut self, mouse: &MouseEvent) {
-        let elements = self.elements.iter().rev();
+        let mut elements = self.elements.iter().rev();
 
-        let hovered_element = elements.enumerate().find_map(|(pos, element)| {
+        let hovered_element_id = elements.find_map(|element: &ResolvedElement| {
             if element.rect.check_collision_point_rec(mouse.position) {
-                Some((pos, element))
+                Some(element.id.clone())
             } else {
                 None
             }
         });
 
-        if let Some((pos, elem)) = hovered_element {
-            let id = self.bound_ids[pos];
+        if let Some(id) = hovered_element_id {
+            let previous_hovered = self.hovered_element_id.clone();
 
-            let previous_hovered = self.hovered_element_id;
+            if let Some(elem) = self.get_element_by_id(id) {
+                if previous_hovered.as_ref() != Some(&elem.id) {
+                    if let Some(cb) = elem.on_enter {
+                        cb(&elem.id);
+                    }
+                }
 
-            if Some(id) != previous_hovered {
-                if let Some(cb) = elem.on_enter {
-                    cb(id);
+                let left_click_cb = if mouse.left_pressed {
+                    elem.on_left_click
+                } else {
+                    None
+                };
+                let right_click_cb = if mouse.right_pressed {
+                    elem.on_right_click
+                } else {
+                    None
+                };
+                let elem_id = elem.id.clone();
+
+                self.hovered_element_id = Some(elem_id.clone());
+
+                if mouse.left_pressed {
+                    self.focus_element_id = Some(elem_id.clone());
+                    if let Some(cb) = left_click_cb {
+                        cb(&elem_id);
+                    }
+                }
+
+                if mouse.right_pressed {
+                    if let Some(cb) = right_click_cb {
+                        cb(&elem_id);
+                    }
                 }
             }
-            self.hovered_element_id = Some(id);
-
-            if mouse.left_pressed {
-                if let Some(cb) = elem.on_left_click {
-                    cb(id);
-                }
-            }
-
-            if mouse.right_pressed {
-                if let Some(cb) = elem.on_right_click {
-                    cb(id);
-                }
-            }
+        } else {
+            self.hovered_element_id = None;
         }
     }
 }
